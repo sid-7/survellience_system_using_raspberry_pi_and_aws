@@ -66,7 +66,7 @@ def spawning_ec2(shared, instance_id, instance_threshold):
 
 def scaling_ec2(shared):
 
-	shared['instance_names'] = ["i-0107960d5744822e8", "i-0c77f45da8a62ee36", "i-0070a496eaa1f9b7c", "i-0c21691e4cb811a2e", "i-023b1e90c3b5a786f", "i-00daa984a1844ded9", "i-036b3f462db6132bd"]
+	shared['instance_names'] = ["*","*"] #pass the list of instances
 
 	print("Master Monitoring.....")
 
