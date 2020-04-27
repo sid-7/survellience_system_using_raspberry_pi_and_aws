@@ -26,7 +26,7 @@ if __name__ == "__main__":
 	s3_client = boto3.client('s3')
 	s3_resource = boto3.resource('s3')
 	sqs_resource = boto3.resource('sqs')
-	bucket_name = "bucket23797" #change the bucket name to match your bucket
+	bucket_name = "bucket_name" #change the bucket name to match your bucket
 	
 	while True:
 
