@@ -54,9 +54,9 @@ if __name__=='__main__':
 	ec2_client = boto3.client('ec2')
 	source = "~/.aws/credentials"
 	destination = "~/.aws/credentials"
-	sid_instance_ids = ["i-0d420f853783ff495", "i-0107960d5744822e8", "i-0c77f45da8a62ee36", "i-0070a496eaa1f9b7c", "i-0c21691e4cb811a2e", "i-023b1e90c3b5a786f", "i-00daa984a1844ded9", "i-036b3f462db6132bd"]
-	for i in sid_instance_ids:
-		pem_files[i] = 'sid_key_pair.pem'
+	instance_ids = ["*","*"] #list of instances to copy the credentials
+	for i in instance_ids:
+		pem_files[i] = 'sid_key_pair.pem' 
 	instance_ids = sid_instance_ids + monil_instance_ids + dada_instance_ids
 
 	threads = []
