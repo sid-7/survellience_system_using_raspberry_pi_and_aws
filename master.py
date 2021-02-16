@@ -9,9 +9,7 @@ import subprocess
 
 # continuosly polls the output_queue and looks for signal to terminate master
 def signal_fetcher(shared):
-
 	global sqs_resource
-
 	input_queue = sqs_resource.get_queue_by_name(QueueName = "Output_Queue")
 	msg_size = input_queue.attributes["ApproximateNumberOfMessages"]
 	if(int(msg_size) > 0):
@@ -19,6 +17,7 @@ def signal_fetcher(shared):
 			message[0].delete()
 			shared["master_closing_flag"] == True # if message is received, flag is made True
 
+			
 # used to fire ssh command on worker instances
 def subprocess_cmd(command):
 	process = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True)
@@ -29,11 +28,10 @@ def subprocess_cmd(command):
 # starts worker instaces and run worker.py with the help of ssh
 def spawning_ec2(shared, instance_id, instance_threshold):
 	global ec2_client, sqs_resource, ec2_resource
-
 	Print("Master launching instance: " + instance_id)
-
 	instance = ec2_resource.Instance(instance_id)
 	instance.start()
+	
 	while(instance.state['Code'] != 16):
 		sleep(5)
 		instance = ec2_resource.Instance(instance_id)
@@ -54,22 +52,17 @@ def spawning_ec2(shared, instance_id, instance_threshold):
 			break
 
 	print("Master stopping instance: " + instance_id)
-
 	response = ec2_client.stop_instances(InstanceIds = [instance_id], DryRun=False)
 	waiter = ec2_client.get_waiter("instance_stopped")
 	waiter.wait(InstanceIds = [instance_id])
 	shared['instance_names'] += [instance_id]
 	shared['current_threshold'] -= 1
 
-
-
-
+	
 def scaling_ec2(shared):
-
 	shared['instance_names'] = ["*","*"] #pass the list of instances
 
 	print("Master Monitoring.....")
-
 	global sqs_resource, ec2_client
 
 	input_queue = sqs_resource.get_queue_by_name(QueueName="Input_Queue")
@@ -77,20 +70,15 @@ def scaling_ec2(shared):
 
 	while(True):
 		messages = sqs_resource.get_queue_by_name(QueueName = "Input_Queue").attributes["ApproximateNumberOfMessages"]
-
 		if(int(messages) > shared['current_threshold'] and len(shared['instance_names']) > 0):
 			_name_ = shared['instance_names'][0]
 			shared['instance_names'] = shared['instance_names'][1:]
 			temp = shared['current_threshold']	
 			threading.Thread(target=spawning_ec2, args = (shared, _name_, temp), name=_name_).start()
 			shared['current_threshold'] += 1
-
 		elif int(sqs_resource.get_queue_by_name(QueueName = "Input_Queue").attributes["ApproximateNumberOfMessages"]) == 0 and shared['current_threshold'] == 0 and shared["master_closing_flag"] == True:
 			print("Master out......")
 			break
-
-
-
 
 if __name__=='__main__':
 	global sqs_resource, ec2_client
@@ -101,19 +89,15 @@ if __name__=='__main__':
 		sqs_resource = boto3.resource('sqs')
 		ec2_resource = boto3.resource('ec2')
 		
-
 		shared['instance_names'] = []
 		shared['current_threshold'] = 0
 		shared["master_closing_flag"] = False
 
-
 		p1 = multiprocessing.Process(target = scaling_ec2, args=(shared,))
-
 		p2 = multiprocessing.Process(target = signal_fetcher, args=(shared,))
 		
 		p1.start()
 		p2.start()
-
 		
 		p2.join()
 		p1.join()
